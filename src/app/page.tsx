@@ -1,95 +1,77 @@
+"use client"
 import Image from "next/image";
 import styles from "./page.module.css";
+import CodeMirror from '@uiw/react-codemirror';
+import {langs} from '@uiw/codemirror-extensions-langs';
+import {autocompletion} from "@codemirror/autocomplete";
+import React from "react";
+import axios from 'axios';
 
 export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+	const completions = [
+		{label: "panic", type: "keyword"},
+		{label: "park", type: "constant", info: "Test completion"},
+		{label: "password", type: "variable"}
+	];
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+	function myCompletions(context: any) {
+		let before = context.matchBefore(/\w+/);
+		if (!context.explicit && !before) return null;
+		return {
+			from: before ? before.from : context.pos,
+			options: completions,
+			validFor: /^\w*$/
+		};
+	}
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+	const [value, setValue] = React.useState("// Type a 'p'\n");
+	const onChange = React.useCallback((val: any, viewUpdate: any) => {
+		console.log("val:", val);
+		setValue(val);
+	}, []);
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
+	const handleClick = async () => {
+		const data = {
+			"language": "c#",
+			"version": "x",
+			"files": [
+				{
+					"name": "my_cool_code.cs",
+					"content": value,
+				}
+			],
+			"stdin": "",
+			"compile_timeout": 10000,
+			"run_timeout": 3000,
+			"compile_memory_limit": -1,
+			"run_memory_limit": -1
+		};
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
+		try {
+			const response = await axios.post('http://127.0.0.1:2000/api/v2/execute/', data);
+			console.log(response.data);
+		} catch (error) {
+			console.error(error);
+		}
+	};
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+	return (
+		<main className={styles.main}>
+			<CodeMirror
+				value="console.log('hello world!');"
+				height="200px"
+				width="1000px"
+				theme="dark"
+				extensions={[langs.csharp(), autocompletion({ override: [myCompletions] })]}
+				basicSetup={{
+					foldGutter: false,
+					dropCursor: false,
+					allowMultipleSelections: false,
+					indentOnInput: false,
+				}}
+				onChange={onChange}
+			/>
+			<button onClick={handleClick}>Проверить</button>
+		</main>
+	);
 }
