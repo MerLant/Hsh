@@ -1,17 +1,16 @@
 "use client"
-import Image from "next/image";
 import styles from "./page.module.css";
 import CodeMirror from '@uiw/react-codemirror';
 import {langs} from '@uiw/codemirror-extensions-langs';
 import {autocompletion} from "@codemirror/autocomplete";
-import React from "react";
+import React, {useCallback, useState} from "react";
 import axios from 'axios';
 
 export default function Home() {
 	const completions = [
 		{label: "panic", type: "keyword"},
 		{label: "park", type: "constant", info: "Test completion"},
-		{label: "password", type: "variable"}
+		{label: "Console", type: "variable"}
 	];
 
 	function myCompletions(context: any) {
@@ -24,45 +23,44 @@ export default function Home() {
 		};
 	}
 
-	const [value, setValue] = React.useState("// Type a 'p'\n");
-	const onChange = React.useCallback((val: any, viewUpdate: any) => {
+	const [response, setResponse] = useState("");
+	const [value, setValue] = useState("// Type a 'p'\n");
+	const onChange = useCallback((val: any, viewUpdate: any) => {
 		console.log("val:", val);
 		setValue(val);
 	}, []);
 
 	const handleClick = async () => {
 		const data = {
-			"language": "c#",
-			"version": "x",
-			"files": [
-				{
-					"name": "my_cool_code.cs",
-					"content": value,
-				}
-			],
-			"stdin": "",
-			"compile_timeout": 10000,
-			"run_timeout": 3000,
-			"compile_memory_limit": -1,
-			"run_memory_limit": -1
+			"code": value
 		};
 
 		try {
-			const response = await axios.post('http://127.0.0.1:2000/api/v2/execute/', data);
-			console.log(response.data);
+			const response = await axios({
+				method: 'post',
+				url: 'http://127.0.0.1:3001/execute/',
+				data: data,
+				headers: {
+					'Content-Type': 'application/json',
+					'Access-Control-Allow-Origin': '*',
+				},
+			});
+			setResponse(JSON.stringify(response.data, null, 2));
+
 		} catch (error) {
-			console.error(error);
+			setResponse(`${error}`);
 		}
 	};
+	const placeholder = "using System;\n\nclass Program\n{\n\tstatic void Main(string[] args)\n\t{\n\t\t\n\t\t// Ваш код сюда\n\t\t\n\t}\n}"
 
 	return (
 		<main className={styles.main}>
 			<CodeMirror
-				value="console.log('hello world!');"
+				value={placeholder}
 				height="200px"
 				width="1000px"
 				theme="dark"
-				extensions={[langs.csharp(), autocompletion({ override: [myCompletions] })]}
+				extensions={[langs.csharp(), autocompletion({override: [myCompletions]})]}
 				basicSetup={{
 					foldGutter: false,
 					dropCursor: false,
@@ -72,6 +70,9 @@ export default function Home() {
 				onChange={onChange}
 			/>
 			<button onClick={handleClick}>Проверить</button>
+			{response}
 		</main>
 	);
 }
+
+
