@@ -38,7 +38,7 @@ export default function Home() {
 		try {
 			const response = await axios({
 				method: 'post',
-				url: 'http://127.0.0.1:3001/execute/',
+				url: 'http://127.0.0.1:3001/check/execute/',
 				data: data,
 				headers: {
 					'Content-Type': 'application/json',
