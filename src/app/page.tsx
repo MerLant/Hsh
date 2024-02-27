@@ -5,6 +5,7 @@ import {langs} from '@uiw/codemirror-extensions-langs';
 import {autocompletion} from "@codemirror/autocomplete";
 import React, {useCallback, useState} from "react";
 import axios from 'axios';
+import { Button, Code } from '@chakra-ui/react';
 
 export default function Home() {
 	const completions = [
@@ -69,8 +70,8 @@ export default function Home() {
 				}}
 				onChange={onChange}
 			/>
-			<button onClick={handleClick}>Проверить</button>
-			{response}
+			<Button onClick={handleClick}>Проверить</Button>
+			<Code>{response}</Code>
 		</main>
 	);
 }
