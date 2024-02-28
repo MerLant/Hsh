@@ -1,17 +1,18 @@
-"use client"
+"use client";
 import styles from "./page.module.css";
-import CodeMirror from '@uiw/react-codemirror';
-import {langs} from '@uiw/codemirror-extensions-langs';
-import {autocompletion} from "@codemirror/autocomplete";
-import React, {useCallback, useState} from "react";
-import axios from 'axios';
-import { Button, Code } from '@chakra-ui/react';
+import CodeMirror from "@uiw/react-codemirror";
+import { langs } from "@uiw/codemirror-extensions-langs";
+import { autocompletion } from "@codemirror/autocomplete";
+import React, { useCallback, useState } from "react";
+import { Button, Code } from "@chakra-ui/react";
+import YandexAuthButton from "@/components/UI/Buttons/YandexAuthButton";
+import $api from "@/api";
 
 export default function Home() {
 	const completions = [
-		{label: "panic", type: "keyword"},
-		{label: "park", type: "constant", info: "Test completion"},
-		{label: "Console", type: "variable"}
+		{ label: "panic", type: "keyword" },
+		{ label: "park", type: "constant", info: "Test completion" },
+		{ label: "Console", type: "variable" },
 	];
 
 	function myCompletions(context: any) {
@@ -20,7 +21,7 @@ export default function Home() {
 		return {
 			from: before ? before.from : context.pos,
 			options: completions,
-			validFor: /^\w*$/
+			validFor: /^\w*$/,
 		};
 	}
 
@@ -33,35 +34,40 @@ export default function Home() {
 
 	const handleClick = async () => {
 		const data = {
-			"code": value
+			code: value,
 		};
 
 		try {
-			const response = await axios({
-				method: 'post',
-				url: 'http://127.0.0.1:3001/check/execute/',
-				data: data,
-				headers: {
-					'Content-Type': 'application/json',
-					'Access-Control-Allow-Origin': '*',
-				},
-			});
-			setResponse(JSON.stringify(response.data, null, 2));
+			// const response = await axios({
+			// 	method: "post",
+			// 	url: "http://127.0.0.1:3001/api/check/execute/",
+			// 	data: data,
+			// 	headers: {
+			// 		"Content-Type": "application/json",
+			// 		"Access-Control-Allow-Origin": "*",
+			// 	},
+			// });
 
+			const response = await $api.post("http://127.0.0.1:3001/api/check/execute/", data);
+			setResponse(JSON.stringify(response.data, null, 2));
 		} catch (error) {
 			setResponse(`${error}`);
 		}
 	};
-	const placeholder = "using System;\n\nclass Program\n{\n\tstatic void Main(string[] args)\n\t{\n\t\t\n\t\t// Ваш код сюда\n\t\t\n\t}\n}"
+	const placeholder =
+		"using System;\n\nclass Program\n{\n\tstatic void Main(string[] args)\n\t{\n\t\t\n\t\t// Ваш код сюда\n\t\t\n\t}\n}";
 
 	return (
 		<main className={styles.main}>
 			<CodeMirror
 				value={placeholder}
-				height="200px"
-				width="1000px"
-				theme="dark"
-				extensions={[langs.csharp(), autocompletion({override: [myCompletions]})]}
+				height='200px'
+				width='1000px'
+				theme='dark'
+				extensions={[
+					langs.csharp(),
+					autocompletion({ override: [myCompletions] }),
+				]}
 				basicSetup={{
 					foldGutter: false,
 					dropCursor: false,
@@ -72,8 +78,7 @@ export default function Home() {
 			/>
 			<Button onClick={handleClick}>Проверить</Button>
 			<Code>{response}</Code>
+			<YandexAuthButton />
 		</main>
 	);
 }
-
-
