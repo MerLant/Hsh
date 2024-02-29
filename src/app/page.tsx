@@ -27,6 +27,7 @@ export default function Home() {
 
 	const [response, setResponse] = useState("");
 	const [value, setValue] = useState("// Type a 'p'\n");
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const onChange = useCallback((val: any, viewUpdate: any) => {
 		console.log("val:", val);
 		setValue(val);
@@ -38,17 +39,12 @@ export default function Home() {
 		};
 
 		try {
-			// const response = await axios({
-			// 	method: "post",
-			// 	url: "http://127.0.0.1:3001/api/check/execute/",
-			// 	data: data,
-			// 	headers: {
-			// 		"Content-Type": "application/json",
-			// 		"Access-Control-Allow-Origin": "*",
-			// 	},
-			// });
-
-			const response = await $api.post("http://127.0.0.1:3001/api/check/execute/", data);
+			setResponse(
+				await $api.post(
+					"http://127.0.0.1:3001/api/check/execute/",
+					data
+				)
+			);
 			setResponse(JSON.stringify(response.data, null, 2));
 		} catch (error) {
 			setResponse(`${error}`);

@@ -1,5 +1,6 @@
-import type {Metadata} from "next";
-import {Providers} from './providers'
+import type { Metadata } from "next";
+import { Providers } from "./providers";
+import React from "react";
 
 export const metadata: Metadata = {
 	title: "Create Next App",
@@ -8,14 +9,16 @@ export const metadata: Metadata = {
 
 // app/layout.tsx
 
-export default function RootLayout({children,}: {
-	children: React.ReactNode,
+export default function RootLayout({
+	children,
+}: {
+	children: React.ReactNode;
 }) {
 	return (
 		<html lang='en'>
-		<body>
-		<Providers>{children}</Providers>
-		</body>
+			<body>
+				<Providers>{children}</Providers>
+			</body>
 		</html>
-	)
+	);
 }
