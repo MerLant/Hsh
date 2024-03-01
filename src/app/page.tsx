@@ -25,11 +25,11 @@ export default function Home() {
 		};
 	}
 
-	const [response, setResponse] = useState("");
+	const [responseState, setResponseState] = useState("");
 	const [value, setValue] = useState("// Type a 'p'\n");
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const onChange = useCallback((val: any, viewUpdate: any) => {
-		console.log("val:", val);
+		// console.log("val:", val);
 		setValue(val);
 	}, []);
 
@@ -39,15 +39,13 @@ export default function Home() {
 		};
 
 		try {
-			setResponse(
-				await $api.post(
-					"http://127.0.0.1:3001/api/check/execute/",
-					data
-				)
+			const response = await $api.post(
+				"http://127.0.0.1:3001/api/check/execute/",
+				data
 			);
-			setResponse(JSON.stringify(response.data, null, 2));
+			setResponseState(JSON.stringify(response.data, null, 2));
 		} catch (error) {
-			setResponse(`${error}`);
+			setResponseState(`${error}`);
 		}
 	};
 	const placeholder =
@@ -73,7 +71,7 @@ export default function Home() {
 				onChange={onChange}
 			/>
 			<Button onClick={handleClick}>Проверить</Button>
-			<Code>{response}</Code>
+			<Code>{responseState}</Code>
 			<YandexAuthButton />
 		</main>
 	);
