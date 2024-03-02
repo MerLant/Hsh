@@ -45,7 +45,7 @@ export default function Home() {
 			);
 			setResponseState(JSON.stringify(response.data, null, 2));
 		} catch (error) {
-			setResponseState(`${error}`);
+			setResponseState(JSON.stringify(error));
 		}
 	};
 	const placeholder =

@@ -36,7 +36,7 @@ $api.interceptors.response.use(
 				localStorage.setItem("token", response.data.accessToken);
 				return await $api.request(originalRequest);
 			} catch (e) {
-				//console.log(e);
+				console.log(e);
 			}
 		}
 		throw error;
