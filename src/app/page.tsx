@@ -51,6 +51,45 @@ export default function Home() {
 	const placeholder =
 		"using System;\n\nclass Program\n{\n\tstatic void Main(string[] args)\n\t{\n\t\t\n\t\t// Ваш код сюда\n\t\t\n\t}\n}";
 
+	const testAdminRole = async () => {
+		try {
+			const response = await $api.get(
+				"http://127.0.0.1:3001/api/course/admin"
+			);
+			setResponseState(
+				`Админ: ${JSON.stringify(response.data, null, 2)}`
+			);
+		} catch (error) {
+			setResponseState(`Ошибка админа: ${JSON.stringify(error)}`);
+		}
+	};
+
+	const testUserRole = async () => {
+		try {
+			const response = await $api.get(
+				"http://127.0.0.1:3001/api/course/user"
+			);
+			setResponseState(
+				`Пользователь: ${JSON.stringify(response.data, null, 2)}`
+			);
+		} catch (error) {
+			setResponseState(`Ошибка пользователя: ${JSON.stringify(error)}`);
+		}
+	};
+
+	const testTeacherRole = async () => {
+		try {
+			const response = await $api.get(
+				"http://127.0.0.1:3001/api/course/teacher"
+			);
+			setResponseState(
+				`Учитель: ${JSON.stringify(response.data, null, 2)}`
+			);
+		} catch (error) {
+			setResponseState(`Ошибка учителя: ${JSON.stringify(error)}`);
+		}
+	};
+
 	return (
 		<main className={styles.main}>
 			<CodeMirror
@@ -73,6 +112,10 @@ export default function Home() {
 			<Button onClick={handleClick}>Проверить</Button>
 			<Code>{responseState}</Code>
 			<YandexAuthButton />
+			<Button onClick={testAdminRole}>Тест роли админа</Button>
+			<Button onClick={testUserRole}>Тест роли пользователя</Button>
+			<Button onClick={testTeacherRole}>Тест роли учителя</Button>
+
 		</main>
 	);
 }
