@@ -1,58 +1,45 @@
+import { createEffect } from "effector";
 import $api from "@/api/index";
 
-export default class AuthService {
-	// Метод для авторизации через Yandex
-	static async loginWithYandex() {
-		const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-		window.location.href = `${API_URL}/auth/yandex`;
-	}
+export const loginWithYandex = () => {
+	const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+	window.location.href = `${API_URL}/auth/yandex`;
+};
 
-	// Метод для получения нового токена по рефреш-токену
-	static async refreshTokens(): Promise<string | null> {
+export const refreshTokensFx = createEffect(async (): Promise<boolean> => {
+	try {
 		const response = await $api.get("/auth/refresh-tokens", {
 			withCredentials: true,
 		});
-
-		if (response.data.accessToken) {
-			return response.data.accessToken.split(" ")[1];
-		}
-
-		return null;
-	}
-
-	// Метод для выхода из аккаунта
-	static async logout(): Promise<void> {
-		// Отправляем запрос на сервер для выхода из аккаунта
-		await $api.get("/auth/logout");
-
-		// Удаляем токен из localStorage
-		localStorage.removeItem("token");
-	}
-
-	// Метод для проверки авторизации
-	static async checkAuth(): Promise<boolean> {
-		// Проверяем наличие токена в localStorage
-		const token = localStorage.getItem("token");
-
-		// Если токена нет, то возвращаем false
-		if (!token) {
-			return false;
-		}
-
-		try {
-			// Отправляем запрос на сервер для проверки токена
-			await $api.get("/auth/check-auth", {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
-
-			// Если токен валидный, то возвращаем true
+		const accessToken = response.data.accessToken?.split(" ")[1];
+		if (accessToken) {
+			localStorage.setItem("token", accessToken);
 			return true;
-		} catch (e) {
-			// Если токен не валидный, то удаляем его из localStorage и возвращаем false
-			localStorage.removeItem("token");
-			return false;
 		}
+		return false;
+	} catch (e) {
+		localStorage.removeItem("token");
+		return false;
 	}
-}
+});
+
+export const logoutFx = createEffect(async (): Promise<void> => {
+	await $api.get("/auth/logout");
+	localStorage.removeItem("token");
+});
+
+export const checkAuthFx = createEffect(async (): Promise<boolean> => {
+	// Проверяем наличие accessToken в localStorage
+	const accessToken = localStorage.getItem("token");
+	console.log(accessToken);
+
+	// Пытаемся выполнить запрос для проверки валидности accessToken
+	try {
+		await $api.get("/auth/check-auth");
+
+		// Если запрос успешен, возвращаем true
+		return true;
+	} catch (error) {
+		return false;
+	}
+});

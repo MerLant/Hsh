@@ -1,10 +1,11 @@
-export interface CreateCourseData {
+export interface CreateThemeData {
 	name: string;
 	description?: string;
+	courseId: number;
 	isDisable?: boolean;
 }
 
-export interface UpdateCourseData {
+export interface UpdateThemeData {
 	name?: string;
 	description?: string;
 	isDisable?: boolean;

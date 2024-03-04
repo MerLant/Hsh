@@ -1,5 +1,4 @@
 import axios from "axios";
-import AuthService from "./AuthService";
 import { AuthResponse } from "@/models/response/AuthResponse";
 
 export const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -26,10 +25,18 @@ $api.interceptors.response.use(
 		if (error.response.status === 401 && !originalRequest._isRetry) {
 			originalRequest._isRetry = true;
 			try {
-				const response = await AuthService.refreshTokens();
+				const response = await axios.get<AuthResponse>(
+					`${API_URL}/auth/refresh-tokens`,
+					{ withCredentials: true }
+				);
+				if (!response || !response.data.accessToken) {
+					console.log("Ошибка входа");
+					return;
+				}
+				const token = response.data.accessToken.split(" ")[1];
 				console.log(response);
 				if (response) {
-					localStorage.setItem("token", response);
+					localStorage.setItem("token", token);
 					// originalRequest.headers.Authorization = `Bearer ${response}`;
 					return await $api.request(originalRequest);
 				}

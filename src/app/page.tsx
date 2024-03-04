@@ -7,7 +7,7 @@ import React, { useCallback, useState } from "react";
 import { Button, Code } from "@chakra-ui/react";
 import YandexAuthButton from "@/components/UI/Buttons/YandexAuthButton";
 import $api from "@/api";
-import CourseService from "@/api/CourseService";
+import { refreshTokensFx } from "@/api/AuthService";
 
 export default function Home() {
 	const completions = [
@@ -49,20 +49,12 @@ export default function Home() {
 			setResponseState(JSON.stringify(error));
 		}
 	};
+
+	const refreshClock = async () => {
+		await refreshTokensFx();
+	};
 	const placeholder =
 		"using System;\n\nclass Program\n{\n\tstatic void Main(string[] args)\n\t{\n\t\t\n\t\t// Ваш код сюда\n\t\t\n\t}\n}";
-
-	const testAdminRole = async () => {
-		setResponseState(await CourseService.findAll());
-	};
-
-	const testUserRole = async () => {
-		setResponseState(await CourseService.findOne(1));
-	};
-
-	const testTeacherRole = async () => {
-		setResponseState(await CourseService.create({ name: "sssadsad" }));
-	};
 
 	return (
 		<main className={styles.main}>
@@ -86,10 +78,7 @@ export default function Home() {
 			<Button onClick={handleClick}>Проверить</Button>
 			<Code>{responseState}</Code>
 			<YandexAuthButton />
-			<Button onClick={testAdminRole}>Тест роли админа</Button>
-			<Button onClick={testUserRole}>Тест роли пользователя</Button>
-			<Button onClick={testTeacherRole}>Тест роли учителя</Button>
-
+			<Button onClick={refreshClock}>Refresh</Button>
 		</main>
 	);
 }

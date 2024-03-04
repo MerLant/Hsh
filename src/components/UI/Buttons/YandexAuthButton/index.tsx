@@ -1,20 +1,35 @@
 import { useEffect } from "react";
+import { useUnit } from "effector-react";
 import { Button } from "@chakra-ui/react";
-import AuthService from "@/api/AuthService";
+import { checkAuthFx, loginWithYandex, logoutFx } from "@/api/AuthService";
+import { $isLoggedIn } from "@/store/authStore"; // Предполагается, что у вас есть такой стор
 
 const Login = () => {
-	// При загрузке страницы проверяем, есть ли токен в параметрах URL
-	useEffect(() => {}, []);
+	const { isLoggedIn, checkAuth, logout } = useUnit({
+		isLoggedIn: $isLoggedIn,
+		checkAuth: checkAuthFx,
+		logout: logoutFx,
+	});
 
-	// Функция для входа через Yandex
-	const loginWithYandex = async () => {
-		await AuthService.loginWithYandex();
+	// При загрузке страницы проверяем, авторизован ли пользователь
+	useEffect(() => {
+		checkAuth();
+	}, [checkAuth]);
+
+	// Обработчик нажатия кнопки
+	const handleLoginLogout = () => {
+		if (!isLoggedIn) {
+			loginWithYandex();
+		} else {
+			logout();
+		}
 	};
 
-	if (false) {
-	}
-
-	return <Button onClick={loginWithYandex}>Войти через Yandex</Button>;
+	return (
+		<Button onClick={handleLoginLogout}>
+			{isLoggedIn ? "Выйти" : "Войти через Yandex"}
+		</Button>
+	);
 };
 
 export default Login;
