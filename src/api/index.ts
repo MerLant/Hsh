@@ -1,4 +1,5 @@
 import axios from "axios";
+import AuthService from "./AuthService";
 import { AuthResponse } from "@/models/response/AuthResponse";
 
 export const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -10,7 +11,7 @@ const $api = axios.create({
 
 $api.interceptors.request.use((config) => {
 	// Добавляем токен в заголовок Authorization для каждого запроса
-	config.headers.Authorization = `${localStorage.getItem("token")}`;
+	config.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
 	axios.defaults.headers.post["Content-Type"] =
 		"application/x-www-form-urlencoded";
 	return config;
@@ -22,24 +23,25 @@ $api.interceptors.response.use(
 	},
 	async (error) => {
 		const originalRequest = error.config;
-		if (
-			error.response.status == 401 &&
-			error.config &&
-			!error.config._isRetry
-		) {
+		if (error.response.status === 401 && !originalRequest._isRetry) {
 			originalRequest._isRetry = true;
 			try {
-				const response = await axios.get<AuthResponse>(
-					`${API_URL}/auth/refresh-tokens`,
-					{ withCredentials: true }
-				);
-				localStorage.setItem("token", response.data.accessToken);
-				return await $api.request(originalRequest);
+				const response = await AuthService.refreshTokens();
+				console.log(response);
+				if (response) {
+					localStorage.setItem("token", response);
+					// originalRequest.headers.Authorization = `Bearer ${response}`;
+					return await $api.request(originalRequest);
+				}
+				// Ошибка или отсутствие токена
+				return await Promise.reject(error);
 			} catch (e) {
-				console.log(e);
+				// console.log("Error refreshing token:", e);
+				return Promise.reject(e);
 			}
 		}
-		throw error;
+		// Пропускаем все другие ошибки
+		return Promise.reject(error);
 	}
 );
 

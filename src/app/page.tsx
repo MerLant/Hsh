@@ -7,6 +7,7 @@ import React, { useCallback, useState } from "react";
 import { Button, Code } from "@chakra-ui/react";
 import YandexAuthButton from "@/components/UI/Buttons/YandexAuthButton";
 import $api from "@/api";
+import CourseService from "@/api/CourseService";
 
 export default function Home() {
 	const completions = [
@@ -52,42 +53,15 @@ export default function Home() {
 		"using System;\n\nclass Program\n{\n\tstatic void Main(string[] args)\n\t{\n\t\t\n\t\t// Ваш код сюда\n\t\t\n\t}\n}";
 
 	const testAdminRole = async () => {
-		try {
-			const response = await $api.get(
-				"http://127.0.0.1:3001/api/course/admin"
-			);
-			setResponseState(
-				`Админ: ${JSON.stringify(response.data, null, 2)}`
-			);
-		} catch (error) {
-			setResponseState(`Ошибка админа: ${JSON.stringify(error)}`);
-		}
+		setResponseState(await CourseService.findAll());
 	};
 
 	const testUserRole = async () => {
-		try {
-			const response = await $api.get(
-				"http://127.0.0.1:3001/api/course/user"
-			);
-			setResponseState(
-				`Пользователь: ${JSON.stringify(response.data, null, 2)}`
-			);
-		} catch (error) {
-			setResponseState(`Ошибка пользователя: ${JSON.stringify(error)}`);
-		}
+		setResponseState(await CourseService.findOne(1));
 	};
 
 	const testTeacherRole = async () => {
-		try {
-			const response = await $api.get(
-				"http://127.0.0.1:3001/api/course/teacher"
-			);
-			setResponseState(
-				`Учитель: ${JSON.stringify(response.data, null, 2)}`
-			);
-		} catch (error) {
-			setResponseState(`Ошибка учителя: ${JSON.stringify(error)}`);
-		}
+		setResponseState(await CourseService.create({ name: "sssadsad" }));
 	};
 
 	return (

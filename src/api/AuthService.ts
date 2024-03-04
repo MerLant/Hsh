@@ -1,4 +1,4 @@
-import $api from "@/api";
+import $api from "@/api/index";
 
 export default class AuthService {
 	// Метод для авторизации через Yandex
@@ -8,18 +8,15 @@ export default class AuthService {
 	}
 
 	// Метод для получения нового токена по рефреш-токену
-	static async refreshTokens(refreshToken: string): Promise<string | null> {
-		// Отправляем запрос на сервер для обновления токена
+	static async refreshTokens(): Promise<string | null> {
 		const response = await $api.get("/auth/refresh-tokens", {
 			withCredentials: true,
 		});
 
-		// Если обновление прошло успешно, то возвращаем новый токен
 		if (response.data.accessToken) {
-			return response.data.accessToken;
+			return response.data.accessToken.split(" ")[1];
 		}
 
-		// Если обновление не удалось, то возвращаем null
 		return null;
 	}
 
