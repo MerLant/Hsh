@@ -4,7 +4,7 @@ import { Button } from "@chakra-ui/react";
 import { checkAuthFx, loginWithYandex, logoutFx } from "@/api/AuthService";
 import { $isLoggedIn } from "@/store/authStore"; // Предполагается, что у вас есть такой стор
 
-const Login = () => {
+export function YandexAuthButton() {
 	const { isLoggedIn, checkAuth, logout } = useUnit({
 		isLoggedIn: $isLoggedIn,
 		checkAuth: checkAuthFx,
@@ -30,6 +30,4 @@ const Login = () => {
 			{isLoggedIn ? "Выйти" : "Войти через Yandex"}
 		</Button>
 	);
-};
-
-export default Login;
+}

@@ -1,84 +1,61 @@
 "use client";
-import styles from "./page.module.css";
-import CodeMirror from "@uiw/react-codemirror";
-import { langs } from "@uiw/codemirror-extensions-langs";
-import { autocompletion } from "@codemirror/autocomplete";
-import React, { useCallback, useState } from "react";
-import { Button, Code } from "@chakra-ui/react";
-import YandexAuthButton from "@/components/UI/Buttons/YandexAuthButton";
-import $api from "@/api";
-import { refreshTokensFx } from "@/api/AuthService";
+// import styles from "./page.module.css";
+import React, { useState } from "react";
+import { Flex, Heading, Text } from "@chakra-ui/react";
+import { CodeEditor } from "@/components";
+import { GoToTask } from "@/components/GoToTask";
+import { useUnit } from "effector-react";
+import { $isLoggedIn } from "@/store/authStore";
+import { CourseList } from "@/components/CourseList";
 
 export default function Home() {
-	const completions = [
-		{ label: "panic", type: "keyword" },
-		{ label: "park", type: "constant", info: "Test completion" },
-		{ label: "Console", type: "variable" },
-	];
+	const { isLoggedIn } = useUnit({
+		isLoggedIn: $isLoggedIn,
+	});
 
-	function myCompletions(context: any) {
-		let before = context.matchBefore(/\w+/);
-		if (!context.explicit && !before) return null;
-		return {
-			from: before ? before.from : context.pos,
-			options: completions,
-			validFor: /^\w*$/,
-		};
-	}
+	const [, setCode] = useState("");
 
-	const [responseState, setResponseState] = useState("");
-	const [value, setValue] = useState("// Type a 'p'\n");
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const onChange = useCallback((val: any, viewUpdate: any) => {
-		// console.log("val:", val);
-		setValue(val);
-	}, []);
-
-	const handleClick = async () => {
-		const data = {
-			code: value,
-		};
-
-		try {
-			const response = await $api.post(
-				"http://127.0.0.1:3001/api/check/execute/",
-				data
-			);
-			setResponseState(JSON.stringify(response.data, null, 2));
-		} catch (error) {
-			setResponseState(JSON.stringify(error));
-		}
+	const handleCodeChange = (newCode: string) => {
+		setCode(newCode);
 	};
-
-	const refreshClock = async () => {
-		await refreshTokensFx();
-	};
-	const placeholder =
-		"using System;\n\nclass Program\n{\n\tstatic void Main(string[] args)\n\t{\n\t\t\n\t\t// Ваш код сюда\n\t\t\n\t}\n}";
 
 	return (
-		<main className={styles.main}>
-			<CodeMirror
-				value={placeholder}
-				height='200px'
-				width='1000px'
-				theme='dark'
-				extensions={[
-					langs.csharp(),
-					autocompletion({ override: [myCompletions] }),
-				]}
-				basicSetup={{
-					foldGutter: false,
-					dropCursor: false,
-					allowMultipleSelections: false,
-					indentOnInput: false,
-				}}
-				onChange={onChange}
-			/>
-			<Button onClick={handleClick}>Проверить</Button>
-			<Code>{responseState}</Code>
-			<YandexAuthButton />
-			<Button onClick={refreshClock}>Refresh</Button>
+		<main style={{ height: "100%" }}>
+			<Flex
+				flexDirection='column'
+				gap='8px'
+				justifyContent='center'
+				flex='1'
+			>
+				<CodeEditor onCodeChange={handleCodeChange} readonly={true} />
+				<Heading
+					bgGradient='linear(to-l, #7928CA, #FF0080)'
+					bgClip='text'
+					fontSize='6xl'
+					fontWeight='extrabold'
+				>
+					HshCode
+				</Heading>
+				<Heading fontSize='6xl'>- проверяй себя сам</Heading>
+
+				<Text fontSize='4xl'>
+					Сервис сам проверит правильность решения ваших задач
+				</Text>
+				{isLoggedIn ? (
+					<Flex
+						flexDirection={"row"}
+						justifyContent={"space-between"}
+						gap='8px'
+						flexWrap={"wrap"}
+					>
+						<CourseList />
+
+						<GoToTask />
+					</Flex>
+				) : (
+					<Text>Войдите в аккаунт, чтобы продолжить</Text>
+				)}
+			</Flex>
 		</main>
 	);
 }

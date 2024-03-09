@@ -43,3 +43,21 @@ export const updateTaskFx = createEffect(
 export const removeTaskFx = createEffect(async (id: number): Promise<void> => {
 	await $api.delete(`/learning/task/${id}`);
 });
+
+export const getResultsByUserAndTaskFx = createEffect(
+	async ({ userId, taskId }: { userId: string; taskId: number }) => {
+		const response = await $api.get(`/learning/task/${userId}/${taskId}`);
+		return response.data;
+	}
+);
+
+// Эффект для выполнения задачи
+export const executeTestsForTaskFx = createEffect(
+	async ({ taskId, code }: { taskId: number; code: string }) => {
+		const response = await $api.post(`/learning/task/${taskId}/execute`, {
+			taskId,
+			code,
+		});
+		return response.data;
+	}
+);

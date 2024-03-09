@@ -1,3 +1,5 @@
+import { TaskResponse } from "@/models/response/TaskResposne";
+
 export interface TaskData {
 	id?: number;
 	name: string;
@@ -26,7 +28,7 @@ export interface CreateTaskData {
 	compileTimeout: number;
 	compileMemoryLimit: number;
 	themeId: number;
-	taskTests?: TaskTestData[];
+	tests?: TaskTestData[];
 }
 
 // Интерфейс для обновления задачи
@@ -40,4 +42,16 @@ export interface UpdateTaskData {
 	themeId?: number;
 	isDisable?: boolean;
 	taskTests?: TaskTestData[];
+}
+
+export interface CreateTaskModalProps {
+	isOpen: boolean;
+	onClose: () => void;
+	themeId: number;
+}
+
+export interface EditTaskModalProps {
+	isOpen: boolean;
+	onClose: () => void;
+	task: TaskData;
 }

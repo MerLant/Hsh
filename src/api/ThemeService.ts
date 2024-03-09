@@ -1,68 +1,54 @@
+import { createEffect } from "effector";
 import $api from "@/api/index";
 import { CreateThemeData, UpdateThemeData } from "@/models/Theme";
 import { ThemeResponse } from "@/models/response/ThemeResponse";
+import { TaskResponse } from "@/models/response/TaskResposne";
 
-class ThemeService {
-	static async findAll() {
-		try {
-			const response = await $api.get("/learning/theme");
-			return response.data;
-		} catch (error) {
-			console.error("Error fetching themes:", error);
-			throw error;
-		}
+export const findAllThemesFx = createEffect(
+	async (): Promise<ThemeResponse[]> => {
+		return $api.get("/learning/theme").then((response) => response.data);
 	}
+);
 
-	static async create(
-		createThemeData: CreateThemeData
-	): Promise<ThemeResponse> {
-		try {
-			const response = await $api.post(
-				"/learning/theme",
-				createThemeData
-			);
-			return response.data;
-		} catch (error) {
-			console.error("Error creating theme:", error);
-			throw error;
-		}
+export const createThemeFx = createEffect(
+	async (createThemeData: CreateThemeData): Promise<ThemeResponse> => {
+		return $api
+			.post("/learning/theme", createThemeData)
+			.then((response) => response.data);
 	}
+);
 
-	static async findOne(id: number): Promise<ThemeResponse> {
-		try {
-			const response = await $api.get(`/learning/theme/${id}`);
-			return response.data;
-		} catch (error) {
-			console.error(`Error fetching theme with ID ${id}:`, error);
-			throw error;
-		}
+export const findOneThemeFx = createEffect(
+	async (id: number): Promise<ThemeResponse> => {
+		return $api
+			.get(`/learning/theme/${id}`)
+			.then((response) => response.data);
 	}
+);
 
-	static async update(
-		id: number,
-		updateThemeData: UpdateThemeData
-	): Promise<ThemeResponse> {
-		try {
-			const response = await $api.put(
-				`/learning/theme/${id}`,
-				updateThemeData
-			);
-			return response.data;
-		} catch (error) {
-			console.error(`Error updating theme with ID ${id}:`, error);
-			throw error;
-		}
+export const updateThemeFx = createEffect(
+	async ({
+		id,
+		updateThemeData,
+	}: {
+		id: number;
+		updateThemeData: UpdateThemeData;
+	}): Promise<ThemeResponse> => {
+		return $api
+			.put(`/learning/theme/${id}`, updateThemeData)
+			.then((response) => response.data);
 	}
+);
 
-	static async remove(id: number) {
-		try {
-			const response = await $api.delete(`/learning/theme/${id}`);
-			return response.data;
-		} catch (error) {
-			console.error(`Error removing theme with ID ${id}:`, error);
-			throw error;
-		}
+export const removeThemeFx = createEffect(async (id: number): Promise<void> => {
+	return $api
+		.delete(`/learning/theme/${id}`)
+		.then((response) => response.data);
+});
+
+export const getAllTaskThemeFx = createEffect(
+	async (id: number): Promise<TaskResponse[]> => {
+		const response = await $api.get(`/learning/theme/${id}/tasks`);
+		return response.data;
 	}
-}
-
-export default ThemeService;
+);

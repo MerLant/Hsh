@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Providers } from "./providers";
 import React from "react";
+import "@/style/null.css";
 
 export const metadata: Metadata = {
 	title: "Hshcode",
