@@ -34,7 +34,6 @@ $api.interceptors.response.use(
 					return;
 				}
 				const token = response.data.accessToken.split(" ")[1];
-				console.log(response);
 				if (response) {
 					localStorage.setItem("token", token);
 					// originalRequest.headers.Authorization = `Bearer ${response}`;
