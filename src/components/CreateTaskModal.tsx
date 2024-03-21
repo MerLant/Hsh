@@ -27,10 +27,10 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 }: CreateTaskModalProps) => {
 	const [name, setName] = useState<string>("");
 	const [description, setDescription] = useState<string>("");
-	const [runTimeout, setRunTimeout] = useState<number>(10);
-	const [runMemoryLimit, setRunMemoryLimit] = useState<number>(10240);
-	const [compileTimeout, setCompileTimeout] = useState<number>(10);
-	const [compileMemoryLimit, setCompileMemoryLimit] = useState<number>(10240);
+	const [runTimeout, setRunTimeout] = useState<number>(5000);
+	const [runMemoryLimit, setRunMemoryLimit] = useState<number>(1000);
+	const [compileTimeout, setCompileTimeout] = useState<number>(5000);
+	const [compileMemoryLimit, setCompileMemoryLimit] = useState<number>(5000);
 	const [taskTests, setTaskTests] = useState<TaskTestData[]>([
 		{ input: "", output: "" },
 	]);

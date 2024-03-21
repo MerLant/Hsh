@@ -76,10 +76,6 @@ function TaskPage({ params }: { params: { id: string } }) {
 		}
 	}, [getTask, getResultsByUserAndTask, params.id, currentUser]);
 
-	useEffect(() => {
-		$currentUserRole.watch((role) => console.log(role));
-	});
-
 	// Подписка на стор с результатами и обновление состояния компонента
 	useEffect(() => {
 		if ($taskResults) {
@@ -117,7 +113,7 @@ function TaskPage({ params }: { params: { id: string } }) {
 							currentUserRole?.name === "TEACHER") && (
 							<ButtonGroup>
 								<Button onClick={onEditTaskModalOpen}>
-									Редактировать тему
+									Редактировать задачу
 								</Button>
 							</ButtonGroup>
 						)}

@@ -16,10 +16,7 @@ import {
 	Textarea,
 	VStack,
 } from "@chakra-ui/react";
-import {
-	EditTaskModalProps,
-	TaskTestData,
-} from "@/models/Task";
+import { EditTaskModalProps, TaskTestData } from "@/models/Task";
 import { useUnit } from "effector-react";
 import { findOneTaskFx, updateTaskFx } from "@/api/TaskService";
 import { $currentTask } from "@/store";
@@ -31,10 +28,10 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 }: EditTaskModalProps) => {
 	const [name, setName] = useState<string>("");
 	const [description, setDescription] = useState<string>("");
-	const [runTimeout, setRunTimeout] = useState<number>(10);
-	const [runMemoryLimit, setRunMemoryLimit] = useState<number>(10240);
-	const [compileTimeout, setCompileTimeout] = useState<number>(10);
-	const [compileMemoryLimit, setCompileMemoryLimit] = useState<number>(10240);
+	const [runTimeout, setRunTimeout] = useState<number>(1000);
+	const [runMemoryLimit, setRunMemoryLimit] = useState<number>(1000);
+	const [compileTimeout, setCompileTimeout] = useState<number>(5000);
+	const [compileMemoryLimit, setCompileMemoryLimit] = useState<number>(5000);
 	const [taskTests, setTaskTests] = useState<TaskTestData[]>([
 		{ input: "", output: "" },
 	]);

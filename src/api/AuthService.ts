@@ -29,10 +29,6 @@ export const logoutFx = createEffect(async (): Promise<void> => {
 });
 
 export const checkAuthFx = createEffect(async (): Promise<boolean> => {
-	// Проверяем наличие accessToken в localStorage
-	const accessToken = localStorage.getItem("token");
-	console.log(accessToken);
-
 	// Пытаемся выполнить запрос для проверки валидности accessToken
 	try {
 		await $api.get("/auth/check-auth");
