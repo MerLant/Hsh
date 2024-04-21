@@ -1,4 +1,3 @@
-import { CourseResponse } from "@/models/response/CourseResponse";
 import { ThemeResponse } from "@/models/response/ThemeResponse";
 
 export interface CreateThemeData {
@@ -19,7 +18,6 @@ export interface CreateThemeModalProps {
 	onClose: () => void;
 	courseId: number;
 }
-
 
 export interface EditThemeModalProps {
 	isOpen: boolean;

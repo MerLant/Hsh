@@ -9,7 +9,6 @@ import {
 } from "@/api/ThemeService";
 import { ThemeResponse } from "@/models/response/ThemeResponse";
 import { TaskResponse } from "@/models/response/TaskResposne";
-import { $allCoursesTheme } from "@/store/courseStore"; // Update this path
 
 // Создаем стор для хранения списка тем
 export const $themes = createStore<ThemeResponse[]>([]).on(

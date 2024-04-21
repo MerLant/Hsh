@@ -17,9 +17,10 @@ $allCourses.on(findAllCoursesFx.doneData, (_, courses) => courses);
 // Создание производного стора для получения первых пяти курсов
 export const $topCourses = $allCourses.map((courses) => courses.slice(0, 5));
 
-
-export const $course = createStore<CourseResponse | null>(null)
-	.on(findOneCourseFx.doneData, (_, course) => course);
+export const $course = createStore<CourseResponse | null>(null).on(
+	findOneCourseFx.doneData,
+	(_, course) => course
+);
 
 export const $courseLoading = createStore<boolean>(true)
 	.on(findOneCourseFx, () => true)

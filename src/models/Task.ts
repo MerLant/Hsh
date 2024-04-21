@@ -1,5 +1,3 @@
-import { TaskResponse } from "@/models/response/TaskResposne";
-
 export interface TaskData {
 	id?: number;
 	name: string;
