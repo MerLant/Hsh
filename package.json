@@ -21,7 +21,7 @@
     "effector": "^23.2.0",
     "effector-react": "^23.2.0",
     "framer-motion": "^11.0.6",
-    "next": "14.1.1",
+    "next": "14.2.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
