@@ -54,7 +54,7 @@ jobs:
             - name: Prepare Release
               run: |
                   mkdir release
-                  cp -R .next/standalone release/
+                  cp -R .next/standalone/. release/
                   cp -R .next/static release/.next/
                   cp -R public release/
               shell: bash
