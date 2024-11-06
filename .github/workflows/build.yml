@@ -48,10 +48,9 @@ jobs:
             - name: Prepare Release
               run: |
                   mkdir release
-                  cp -R .next/standalone release/
-                  cp -R .next/static release/.next/
-                  cp -R public release/
-                  cp package.json pnpm-lock.yaml release/
+                  cp -R .next/standalone/* release/
+                  # cp -R .next/static release/.next/
+                  # cp -R public release/
               shell: bash
 
             # 8. Archive build
