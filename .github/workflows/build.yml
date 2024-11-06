@@ -1,0 +1,193 @@
+name: Build and Deploy Next.js App
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        env:
+            NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+
+        steps:
+            # 1. Checkout repository
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            # 2. Setup Node.js
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "pnpm"
+
+            # 3. Install PNPM
+            - name: Install PNPM
+              run: npm install -g pnpm
+
+            # 4. Install dependencies
+            - name: Install Dependencies
+              run: pnpm install --frozen-lockfile
+
+            # 5. Generate Prisma client (если используется)
+            - name: Generate Prisma Client
+              run: pnpm prisma generate
+
+            # 6. Build the application
+            - name: Build Application
+              run: pnpm build
+              env:
+                  NEXT_PUBLIC_BACKEND_URL:
+                      ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+
+            # 7. Prepare release artifacts
+            - name: Prepare Release
+              run: |
+                  mkdir release
+                  cp -R .next/standalone release/
+                  cp -R .next/static release/.next/
+                  cp -R public release/
+                  cp package.json pnpm-lock.yaml release/
+              shell: bash
+
+            # 8. Archive build
+            - name: Archive build
+              run: |
+                  cd release
+                  tar --exclude='./**/*.log' -czvf ../release.tar.gz .
+              shell: bash
+
+            # 9. Upload artifact
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: nextjs-app-release
+                  path: release.tar.gz
+
+    deploy:
+        runs-on: ubuntu-latest
+        needs: build
+
+        steps:
+            # 1. Download Artifact
+            - name: Download Artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: nextjs-app-release
+                  path: .
+
+            # 2. Upload Artifact via Pterodactyl API
+            - name: Upload Artifact via Pterodactyl API
+              env:
+                  PANEL_URL: ${{ secrets.PTERO_PANEL_URL }}
+                  API_KEY: ${{ secrets.PTERO_API_KEY }}
+                  SERVER_ID: ${{ secrets.PTERO_SERVER_ID }}
+              run: |
+                  set -e  # Остановить выполнение при любой ошибке
+
+                  echo "Запрашиваем URL для загрузки файла..."
+                  # Запрос URL для загрузки файла и захват статус-кода
+                  response=$(curl --silent --show-error -X GET "$PANEL_URL/api/client/servers/$SERVER_ID/files/upload" \
+                    -H "Authorization: Bearer $API_KEY" \
+                    -H "Accept: application/json" \
+                    -w "HTTPSTATUS:%{http_code}")
+
+                  # Извлечение тела ответа и статус-кода
+                  body=$(echo "$response" | sed -e 's/HTTPSTATUS\:.*//g')
+                  status=$(echo "$response" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+
+                  # Проверка статус-кода
+                  if [ "$status" -ne 200 ]; then
+                    echo "Error: Не удалось получить URL для загрузки файла на сервер. HTTP статус: $status" >&2
+                    echo "Ответ сервера: $body" >&2
+                    exit 1
+                  fi
+
+                  # Извлечение upload_url из JSON-ответа без использования jq
+                  upload_url=$(echo "$body" | grep -o '"url":"[^"]*"' | sed 's/"url":"\(.*\)"/\1/' | sed 's/\\\//\//g')
+
+                  if [ -z "$upload_url" ] || [ "$upload_url" == "null" ]; then
+                    echo "Error: Не удалось получить URL для загрузки файла на сервер."
+                    echo "Ответ сервера: $body"
+                    exit 1
+                  fi
+
+                  echo "URL для загрузки получен: $upload_url"
+
+                  # Проверка наличия файла
+                  if [ ! -f "release.tar.gz" ]; then
+                    echo "Error: Файл release.tar.gz не найден." >&2
+                    exit 1
+                  fi
+
+                  echo "Начинаем загрузку артефакта..."
+                  # Загрузка артефакта и захват статус-кода
+                  upload_response=$(curl --silent --show-error -X POST "$upload_url" \
+                    -F "files=@release.tar.gz" \
+                    -w "HTTPSTATUS:%{http_code}")
+
+                  # Извлечение тела ответа и статус-кода загрузки
+                  upload_body=$(echo "$upload_response" | sed -e 's/HTTPSTATUS\:.*//g')
+                  upload_status=$(echo "$upload_response" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+
+                  # Проверка статус-кода загрузки
+                  if [ "$upload_status" -ne 200 ] && [ "$upload_status" -ne 204 ]; then
+                    echo "Error: Не удалось загрузить артефакт на сервер. HTTP статус: $upload_status" >&2
+                    echo "Ответ сервера при загрузке: $upload_body" >&2
+                    exit 1
+                  fi
+
+                  echo "Артефакт успешно загружен на сервер."
+              shell: /usr/bin/bash -e {0}
+
+            # 3. Decompress Artifact on Server
+            - name: Decompress Artifact on Server
+              env:
+                  PANEL_URL: ${{ secrets.PTERO_PANEL_URL }}
+                  API_KEY: ${{ secrets.PTERO_API_KEY }}
+                  SERVER_ID: ${{ secrets.PTERO_SERVER_ID }}
+              run: |
+                  # Распаковка артефакта на сервере
+                  response=$(curl -s -w "\n%{http_code}" \
+                    -L -X POST "$PANEL_URL/api/client/servers/$SERVER_ID/files/decompress" \
+                    -H "Authorization: Bearer $API_KEY" \
+                    -H "Content-Type: application/json" \
+                    -H "Accept: application/json" \
+                    -d '{"root": "/", "file": "release.tar.gz"}')
+
+                  http_body=$(echo "$response" | sed '$d')
+                  http_code=$(echo "$response" | tail -n1)
+
+                  if [ "$http_code" -ne 204 ]; then
+                    echo "Error: Не удалось распаковать артефакт на сервере. HTTP статус: $http_code" >&2
+                    echo "Тело ответа: $http_body" >&2
+                    exit 1
+                  fi
+
+                  echo "Артефакт успешно распакован на сервере."
+
+            # 4. Start Application on Server
+            - name: Start Application on Server
+              env:
+                  PANEL_URL: ${{ secrets.PTERO_PANEL_URL }}
+                  API_KEY: ${{ secrets.PTERO_API_KEY }}
+                  SERVER_ID: ${{ secrets.PTERO_SERVER_ID }}
+              run: |
+                  # Запуск приложения на сервере
+                  response=$(curl -s -o /dev/null -w "%{http_code}" \
+                    -X POST "$PANEL_URL/api/client/servers/$SERVER_ID/power" \
+                    -H "Authorization: Bearer $API_KEY" \
+                    -H "Content-Type: application/json" \
+                    -d '{"signal": "restart"}')
+
+                  if [ "$response" -ne 204 ]; then
+                    echo "Error: Не удалось запустить приложение на сервере. HTTP статус: $response" >&2
+                    exit 1
+                  fi
+
+                  echo "Приложение успешно запущено на сервере."
