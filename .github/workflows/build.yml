@@ -16,6 +16,7 @@ jobs:
 
         env:
             NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+            HOSTNAME: "127.0.0.1"
 
         steps:
             # 1. Checkout repository
@@ -53,9 +54,9 @@ jobs:
             - name: Prepare Release
               run: |
                   mkdir release
-                  cp -R .next/standalone/. release/
-                  # cp -R .next/static release/.next/
-                  # cp -R public release/
+                  cp -R .next/standalone release/
+                  cp -R .next/static release/.next/
+                  cp -R public release/
               shell: bash
 
             # 8. Archive build
