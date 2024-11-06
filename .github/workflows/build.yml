@@ -38,7 +38,7 @@ jobs:
 
             # 4. Install dependencies
             - name: Install Dependencies
-              run: pnpm install --frozen-lockfile --prod
+              run: pnpm install --frozen-lockfile
 
             # 6. Build the application
             - name: Build Application
