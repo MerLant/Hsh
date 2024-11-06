@@ -34,7 +34,9 @@ jobs:
                   cache: "pnpm"
 
             - name: Configure pnpm
-              run: echo "shamefully-hoist=true" >> .npmrc
+              run: |
+                  echo "node-linker=hoisted" >> .npmrc
+                  echo "shamefully-hoist=true" >> .npmrc
 
             # 4. Install dependencies
             - name: Install Dependencies
