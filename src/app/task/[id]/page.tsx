@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useUnit } from "effector-react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useStore, useEvent } from "effector-react";
 import {
 	Box,
 	Button,
-	ButtonGroup,
 	Heading,
 	Stack,
 	StackDivider,
@@ -16,6 +15,9 @@ import {
 	Flex,
 	IconButton,
 	useColorModeValue,
+	Card,
+	CardHeader,
+	CardBody,
 } from "@chakra-ui/react";
 import { CodeEditor } from "@/components";
 import {
@@ -35,70 +37,30 @@ import { EditTaskModal } from "@/components/EditTaskModal";
 import { EditIcon } from "@chakra-ui/icons";
 
 function TaskPage({ params }: { params: { id: string } }) {
-	const {
-		task,
-		getTask,
-		executeTests,
-		currentUser,
-		getCurrentUser,
-		getResultsByUserAndTask,
-		getRole,
-		currentUserRole,
-	} = useUnit({
-		task: $currentTask,
-		getTask: findOneTaskFx,
-		executeTests: executeTestsForTaskFx,
-		currentUser: $currentUser,
-		getCurrentUser: getCurrentUserFx,
-		getResultsByUserAndTask: getResultsByUserAndTaskFx,
-		getRole: getRoleFx,
-		currentUserRole: $currentUserRole,
-		taskResults: $taskResults,
-	});
+	const task = useStore($currentTask);
+	const currentUser = useStore($currentUser);
+	const currentUserRole = useStore($currentUserRole);
+	const testResults = useStore($taskResults);
+
+	const getTask = useEvent(findOneTaskFx);
+	const executeTests = useEvent(executeTestsForTaskFx);
+	const getCurrentUser = useEvent(getCurrentUserFx);
+	const getResultsByUserAndTask = useEvent(getResultsByUserAndTaskFx);
+	const getRole = useEvent(getRoleFx);
 
 	const [code, setCode] = useState("");
-	const [testResults, setTestResults] = useState<TestResultsSummary[]>([]);
+
 	const {
 		isOpen: isEditTaskModalOpen,
 		onOpen: onEditTaskModalOpen,
 		onClose: onEditTaskModalClose,
 	} = useDisclosure();
 
-	const handleCodeChange = (newCode: string) => {
+	const handleCodeChange = useCallback((newCode: string) => {
 		setCode(newCode);
-	};
-
-	useEffect(() => {
-		getCurrentUser();
-	}, [getCurrentUser]);
-
-	useEffect(() => {
-		if (params.id && currentUser) {
-			getTask(+params.id);
-			getResultsByUserAndTask({
-				userId: currentUser.id,
-				taskId: +params.id,
-			});
-		}
-	}, [getTask, getResultsByUserAndTask, params.id, currentUser]);
-
-	useEffect(() => {
-		if ($taskResults) {
-			const unsubscribe = $taskResults.watch((newTestResults) => {
-				setTestResults(newTestResults);
-			});
-
-			return () => unsubscribe();
-		}
 	}, []);
 
-	useEffect(() => {
-		if (!currentUserRole) {
-			getRole();
-		}
-	}, []);
-
-	const handleSubmit = async () => {
+	const handleSubmit = useCallback(async () => {
 		if (task?.id && currentUser) {
 			await executeTests({ taskId: +params.id, code });
 			getResultsByUserAndTask({
@@ -106,17 +68,57 @@ function TaskPage({ params }: { params: { id: string } }) {
 				taskId: task.id,
 			});
 		}
-	};
+	}, [
+		executeTests,
+		getResultsByUserAndTask,
+		task,
+		currentUser,
+		code,
+		params.id,
+	]);
+
+	useEffect(() => {
+		getCurrentUser();
+	}, [getCurrentUser]);
+
+	useEffect(() => {
+		if (params.id && currentUser) {
+			const taskId = +params.id;
+			getTask(taskId);
+			getResultsByUserAndTask({
+				userId: currentUser.id,
+				taskId,
+			});
+		}
+	}, [params.id, currentUser, getTask, getResultsByUserAndTask]);
+
+	useEffect(() => {
+		if (!currentUserRole) {
+			getRole();
+		}
+	}, [currentUserRole, getRole]);
+
+	const sortedTestResults = useMemo(() => {
+		return testResults
+			? [...testResults].sort(
+					(a, b) =>
+						new Date(b.executionDate).getTime() -
+						new Date(a.executionDate).getTime()
+				)
+			: [];
+	}, [testResults]);
+
+	const headingColor = useColorModeValue("blue.600", "blue.300");
+	const textColor = useColorModeValue("gray.700", "gray.300");
+	const borderColor = useColorModeValue("gray.300", "gray.700");
+	const bgColor = useColorModeValue("white", "gray.700");
 
 	return (
 		<VStack spacing={6} align='stretch' p={6} minH='100vh'>
 			{task ? (
 				<>
 					<Flex justify='space-between' align='center'>
-						<Heading
-							size='lg'
-							color={useColorModeValue("blue.600", "blue.300")}
-						>
+						<Heading size='lg' color={headingColor}>
 							{task.name}
 						</Heading>
 						{(currentUserRole?.name === "ADMIN" ||
@@ -131,10 +133,7 @@ function TaskPage({ params }: { params: { id: string } }) {
 						)}
 					</Flex>
 
-					<Text
-						fontSize='lg'
-						color={useColorModeValue("gray.700", "gray.300")}
-					>
+					<Text fontSize='lg' color={textColor}>
 						{task.description || "Описание отсутствует."}
 					</Text>
 
@@ -146,75 +145,67 @@ function TaskPage({ params }: { params: { id: string } }) {
 					>
 						Отправить код на тестирование
 					</Button>
-
-					<Stack divider={<StackDivider />} spacing={4} mt={8}>
-						<Heading size='md'>Результаты тестирования</Heading>
-						{testResults.length > 0 ? (
-							testResults
-								.slice()
-								.sort(
-									(a, b) =>
-										new Date(b.executionDate).getTime() -
-										new Date(a.executionDate).getTime()
-								)
-								.map((result, index) => (
-									<Box
-										key={index}
-										border='1px'
-										borderColor={useColorModeValue(
-											"gray.300",
-											"gray.700"
-										)}
-										borderRadius='md'
-										p={4}
-										bg={useColorModeValue(
-											"white",
-											"gray.700"
-										)}
-									>
-										<Flex
-											justify='space-between'
-											align='center'
+					<Card p={4}>
+						<CardHeader>
+							<Heading size='md'>Результаты тестирования</Heading>
+						</CardHeader>
+						<CardBody>
+							<Stack
+								divider={<StackDivider />}
+								spacing={4}
+								mt={8}
+							>
+								{sortedTestResults.length > 0 ? (
+									sortedTestResults.map((result) => (
+										<Box
+											key={
+												result.id ||
+												result.executionDate
+											} // Убедитесь, что идентификатор уникален
+											p={4}
 										>
-											<Text
-												fontSize='md'
-												color={useColorModeValue(
-													"gray.700",
-													"gray.300"
-												)}
+											<Flex
+												justify='space-between'
+												align='center'
 											>
-												Дата выполнения:{" "}
-												{new Date(
-													result.executionDate
-												).toLocaleString()}
-											</Text>
-											<Badge
-												colorScheme={
-													result.passedTests ===
+												<Text
+													fontSize='md'
+													color={textColor}
+												>
+													Дата выполнения:{" "}
+													{new Date(
+														result.executionDate
+													).toLocaleString()}
+												</Text>
+												<Badge
+													colorScheme={
+														result.passedTests ===
+														result.totalTests
+															? "green"
+															: "red"
+													}
+												>
+													{result.passedTests ===
 													result.totalTests
-														? "green"
-														: "red"
-												}
-											>
-												{result.passedTests ===
-												result.totalTests
-													? "Успешно"
-													: "Не пройдено"}
-											</Badge>
-										</Flex>
-										<Text mt={2}>
-											Пройдено тестов:{" "}
-											{result.passedTests} из{" "}
-											{result.totalTests}
-										</Text>
-									</Box>
-								))
-						) : (
-							<Text color='gray.500'>
-								Результаты тестирования отсутствуют.
-							</Text>
-						)}
-					</Stack>
+														? "Успешно"
+														: "Не пройдено"}
+												</Badge>
+											</Flex>
+											<Text mt={2}>
+												Пройдено тестов:{" "}
+												{result.passedTests} из{" "}
+												{result.totalTests}
+											</Text>
+										</Box>
+									))
+								) : (
+									<Text color='gray.500'>
+										Результаты тестирования отсутствуют.
+									</Text>
+								)}
+							</Stack>
+						</CardBody>
+					</Card>
 
 					<EditTaskModal
 						isOpen={isEditTaskModalOpen}
