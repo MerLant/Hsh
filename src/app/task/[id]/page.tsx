@@ -12,6 +12,10 @@ import {
 	Text,
 	useDisclosure,
 	VStack,
+	Badge,
+	Flex,
+	IconButton,
+	useColorModeValue,
 } from "@chakra-ui/react";
 import { CodeEditor } from "@/components";
 import {
@@ -28,6 +32,7 @@ import {
 import { getCurrentUserFx, getRoleFx } from "@/api/UserService";
 import { TestResultsSummary } from "@/models/response/TaskResposne";
 import { EditTaskModal } from "@/components/EditTaskModal";
+import { EditIcon } from "@chakra-ui/icons";
 
 function TaskPage({ params }: { params: { id: string } }) {
 	const {
@@ -58,6 +63,7 @@ function TaskPage({ params }: { params: { id: string } }) {
 		onOpen: onEditTaskModalOpen,
 		onClose: onEditTaskModalClose,
 	} = useDisclosure();
+
 	const handleCodeChange = (newCode: string) => {
 		setCode(newCode);
 	};
@@ -76,7 +82,6 @@ function TaskPage({ params }: { params: { id: string } }) {
 		}
 	}, [getTask, getResultsByUserAndTask, params.id, currentUser]);
 
-	// Подписка на стор с результатами и обновление состояния компонента
 	useEffect(() => {
 		if ($taskResults) {
 			const unsubscribe = $taskResults.watch((newTestResults) => {
@@ -104,51 +109,111 @@ function TaskPage({ params }: { params: { id: string } }) {
 	};
 
 	return (
-		<VStack spacing={4} align='stretch'>
+		<VStack spacing={6} align='stretch' p={6} minH='100vh'>
 			{task ? (
 				<>
-					<Box>
-						<Heading>{task.name}</Heading>
+					<Flex justify='space-between' align='center'>
+						<Heading
+							size='lg'
+							color={useColorModeValue("blue.600", "blue.300")}
+						>
+							{task.name}
+						</Heading>
 						{(currentUserRole?.name === "ADMIN" ||
 							currentUserRole?.name === "TEACHER") && (
-							<ButtonGroup>
-								<Button onClick={onEditTaskModalOpen}>
-									Редактировать задачу
-								</Button>
-							</ButtonGroup>
+							<IconButton
+								aria-label='Edit Task'
+								icon={<EditIcon />}
+								onClick={onEditTaskModalOpen}
+								colorScheme='teal'
+								variant='outline'
+							/>
 						)}
-						<Text>
-							{task.description || "Описание отсутствует."}
-						</Text>
-						<CodeEditor onCodeChange={handleCodeChange} />
-						<Button colorScheme='blue' onClick={handleSubmit}>
-							Отправить
-						</Button>
-					</Box>
-					<Stack divider={<StackDivider />} spacing={4}>
-						{testResults &&
+					</Flex>
+
+					<Text
+						fontSize='lg'
+						color={useColorModeValue("gray.700", "gray.300")}
+					>
+						{task.description || "Описание отсутствует."}
+					</Text>
+
+					<CodeEditor onCodeChange={handleCodeChange} />
+					<Button
+						colorScheme='blue'
+						onClick={handleSubmit}
+						width='full'
+					>
+						Отправить код на тестирование
+					</Button>
+
+					<Stack divider={<StackDivider />} spacing={4} mt={8}>
+						<Heading size='md'>Результаты тестирования</Heading>
+						{testResults.length > 0 ? (
 							testResults
-								.slice() // Создаем копию, чтобы не мутировать оригинальный массив
+								.slice()
 								.sort(
 									(a, b) =>
 										new Date(b.executionDate).getTime() -
 										new Date(a.executionDate).getTime()
-								) // Сортировка по убыванию даты
+								)
 								.map((result, index) => (
-									<Box key={index}>
-										<Text>
-											Дата выполнения:{" "}
-											{new Date(
-												result.executionDate
-											).toLocaleString()}
-										</Text>
-										<Text>
+									<Box
+										key={index}
+										border='1px'
+										borderColor={useColorModeValue(
+											"gray.300",
+											"gray.700"
+										)}
+										borderRadius='md'
+										p={4}
+										bg={useColorModeValue(
+											"white",
+											"gray.700"
+										)}
+									>
+										<Flex
+											justify='space-between'
+											align='center'
+										>
+											<Text
+												fontSize='md'
+												color={useColorModeValue(
+													"gray.700",
+													"gray.300"
+												)}
+											>
+												Дата выполнения:{" "}
+												{new Date(
+													result.executionDate
+												).toLocaleString()}
+											</Text>
+											<Badge
+												colorScheme={
+													result.passedTests ===
+													result.totalTests
+														? "green"
+														: "red"
+												}
+											>
+												{result.passedTests ===
+												result.totalTests
+													? "Успешно"
+													: "Не пройдено"}
+											</Badge>
+										</Flex>
+										<Text mt={2}>
 											Пройдено тестов:{" "}
 											{result.passedTests} из{" "}
 											{result.totalTests}
 										</Text>
 									</Box>
-								))}
+								))
+						) : (
+							<Text color='gray.500'>
+								Результаты тестирования отсутствуют.
+							</Text>
+						)}
 					</Stack>
 
 					<EditTaskModal
