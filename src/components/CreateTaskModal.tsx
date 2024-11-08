@@ -27,10 +27,11 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 }: CreateTaskModalProps) => {
 	const [name, setName] = useState<string>("");
 	const [description, setDescription] = useState<string>("");
-	const [runTimeout, setRunTimeout] = useState<number>(5000);
-	const [runMemoryLimit, setRunMemoryLimit] = useState<number>(1000);
-	const [compileTimeout, setCompileTimeout] = useState<number>(5000);
-	const [compileMemoryLimit, setCompileMemoryLimit] = useState<number>(5000);
+	const [runTimeout, setRunTimeout] = useState<number>(3000);
+	const [runMemoryLimit, setRunMemoryLimit] = useState<number>(10000000);
+	const [compileTimeout, setCompileTimeout] = useState<number>(3000);
+	const [compileMemoryLimit, setCompileMemoryLimit] =
+		useState<number>(200000000);
 	const [taskTests, setTaskTests] = useState<TaskTestData[]>([
 		{ input: "", output: "" },
 	]);
@@ -107,6 +108,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 								onChange={(e) =>
 									setRunTimeout(Number(e.target.value))
 								}
+								max={3000}
 							/>
 						</FormControl>
 						<FormControl>
@@ -127,6 +129,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 								onChange={(e) =>
 									setCompileTimeout(Number(e.target.value))
 								}
+								max={3000}
 							/>
 						</FormControl>
 						<FormControl>
