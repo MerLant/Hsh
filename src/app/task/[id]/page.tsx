@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import {
 	Button,
@@ -21,7 +22,7 @@ import { useUnit } from "effector-react";
 import { findOneTaskFx, updateTaskFx } from "@/api/TaskService";
 import { $currentTask } from "@/store";
 
-export const EditTaskModal: React.FC<EditTaskModalProps> = ({
+const EditTaskModal: React.FC<EditTaskModalProps> = ({
 	isOpen,
 	onClose,
 	task,
@@ -162,3 +163,5 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 		</Modal>
 	);
 };
+
+export default EditTaskModal;

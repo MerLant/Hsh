@@ -40,7 +40,7 @@ export interface UpdateTaskData {
 	compileMemoryLimit?: number;
 	themeId?: number;
 	isDisable?: boolean;
-	taskTests?: TaskTestData[];
+	tests?: TaskTestData[];
 }
 
 export interface CreateTaskModalProps {
