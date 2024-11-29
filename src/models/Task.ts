@@ -13,6 +13,7 @@ export interface TaskData {
 
 // Интерфейс для описания структуры теста задачи
 export interface TaskTestData {
+	id?: string;
 	input: string;
 	output: string;
 }
