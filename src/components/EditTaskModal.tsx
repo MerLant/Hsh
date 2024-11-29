@@ -32,9 +32,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 	const [runMemoryLimit, setRunMemoryLimit] = useState<number>(1000);
 	const [compileTimeout, setCompileTimeout] = useState<number>(5000);
 	const [compileMemoryLimit, setCompileMemoryLimit] = useState<number>(5000);
-	const [taskTests, setTaskTests] = useState<TaskTestData[]>([
-		{ input: "", output: "" },
-	]);
+	const [taskTests, setTaskTests] = useState<TaskTestData[]>([]);
 
 	const storeManager = useUnit({
 		updateTask: updateTaskFx,
@@ -43,25 +41,24 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 	});
 
 	const removeTest = (index: number) => {
-		// Создаём копию текущего массива тестов
 		const updatedTests = [...taskTests];
-
-		// Удаляем тест по индексу
 		updatedTests.splice(index, 1);
-
-		// Обновляем состояние тестов новым массивом
 		setTaskTests(updatedTests);
 	};
 
 	const addTest = () =>
 		setTaskTests([...taskTests, { input: "", output: "" }]);
+
 	const updateTest = (
 		index: number,
 		field: "input" | "output",
 		value: string
 	) => {
 		const updatedTests = [...taskTests];
-		updatedTests[index][field] = value;
+		updatedTests[index] = {
+			...updatedTests[index],
+			[field]: value,
+		};
 		setTaskTests(updatedTests);
 	};
 
@@ -73,9 +70,9 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 			setRunMemoryLimit(task.runMemoryLimit);
 			setCompileTimeout(task.compileTimeout);
 			setCompileMemoryLimit(task.compileMemoryLimit);
-			setTaskTests(task.taskTests || taskTests);
+			setTaskTests(task.taskTests || []);
 		}
-	}, [$currentTask]);
+	}, [task]);
 
 	const handleSubmit = () => {
 		if (task?.id) {
@@ -88,6 +85,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 					runMemoryLimit,
 					compileTimeout,
 					compileMemoryLimit,
+					tests: taskTests,
 				},
 			});
 		}
@@ -99,7 +97,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 		<Modal isOpen={isOpen} onClose={onClose} size={"xl"}>
 			<ModalOverlay />
 			<ModalContent>
-				<ModalHeader>Создать новую задачу</ModalHeader>
+				<ModalHeader>Редактировать задачу</ModalHeader>
 				<ModalCloseButton />
 				<ModalBody>
 					<VStack spacing={4}>
@@ -117,48 +115,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 								onChange={(e) => setDescription(e.target.value)}
 							/>
 						</FormControl>
-						<FormControl>
-							<FormLabel>Run Timeout</FormLabel>
-							<Input
-								type='number'
-								value={runTimeout}
-								onChange={(e) =>
-									setRunTimeout(Number(e.target.value))
-								}
-							/>
-						</FormControl>
-						<FormControl>
-							<FormLabel>Run Memory Limit</FormLabel>
-							<Input
-								type='number'
-								value={runMemoryLimit}
-								onChange={(e) =>
-									setRunMemoryLimit(Number(e.target.value))
-								}
-							/>
-						</FormControl>
-						<FormControl>
-							<FormLabel>Compile Timeout</FormLabel>
-							<Input
-								type='number'
-								value={compileTimeout}
-								onChange={(e) =>
-									setCompileTimeout(Number(e.target.value))
-								}
-							/>
-						</FormControl>
-						<FormControl>
-							<FormLabel>Compile Memory Limit</FormLabel>
-							<Input
-								type='number'
-								value={compileMemoryLimit}
-								onChange={(e) =>
-									setCompileMemoryLimit(
-										Number(e.target.value)
-									)
-								}
-							/>
-						</FormControl>
+						{/* Остальные поля формы */}
 						<Button onClick={addTest}>Добавить тест</Button>
 						{taskTests.map((test, index) => (
 							<HStack key={index} width='100%' alignItems={"end"}>
@@ -198,7 +155,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 				</ModalBody>
 				<ModalFooter>
 					<Button colorScheme='blue' onClick={handleSubmit}>
-						Создать
+						Сохранить
 					</Button>
 				</ModalFooter>
 			</ModalContent>
