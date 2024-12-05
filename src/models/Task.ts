@@ -8,7 +8,7 @@ export interface TaskData {
 	compileMemoryLimit: number;
 	themeId: number;
 	isDisable: boolean;
-	taskTests?: TaskTestData[];
+	tests?: TaskTestData[];
 }
 
 // Интерфейс для описания структуры теста задачи

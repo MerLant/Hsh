@@ -70,7 +70,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 			setRunMemoryLimit(task.runMemoryLimit);
 			setCompileTimeout(task.compileTimeout);
 			setCompileMemoryLimit(task.compileMemoryLimit);
-			setTaskTests(task.taskTests || []);
+			setTaskTests(task.tests || []);
 		}
 	}, [task]);
 
